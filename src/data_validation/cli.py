@@ -32,6 +32,8 @@ def main() -> int:
         return 1
 
     print(f"Validation passed: {result.parquet_path}")
+    print(f"Rows validated: {result.row_count:,}")
+    print(f"Execution time: {result.execution_time_seconds:.3f} seconds")
     print("Checks run:")
 
     for check in result.checks_run:

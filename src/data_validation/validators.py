@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -24,26 +25,36 @@ class ValidationResult:
     """Summary of a successful validation run."""
 
     parquet_path: str
+    row_count: int
     checks_run: tuple[str, ...]
+    execution_time_seconds: float
 
 
 def validate_parquet(parquet_path: str | Path) -> ValidationResult:
     """Run all validation checks against a Parquet file."""
     parquet_path = Path(parquet_path)
+    start_time = time.perf_counter()
 
     validate_required_columns(parquet_path)
     validate_column_types(parquet_path)
     validate_nulls(parquet_path)
     validate_composite_uniqueness(parquet_path)
 
+    metadata = pq.read_metadata(parquet_path)
+    row_count = metadata.num_rows
+
+    execution_time = time.perf_counter() - start_time
+
     return ValidationResult(
         parquet_path=str(parquet_path),
+        row_count=row_count,
         checks_run=(
             "required_columns",
             "column_types",
             "nulls",
             "composite_uniqueness",
         ),
+        execution_time_seconds=execution_time,
     )
 
 
@@ -118,3 +129,27 @@ def validate_composite_uniqueness(parquet_path: str | Path) -> None:
 
     if duplicate is not None:
         raise ValidationError("Duplicate rows found for composite key: " + ", ".join(COMPOSITE_KEY))
+
+
+def validate_reference_values(
+    parquet_path: str | Path,
+    reference_values: dict[str, set[str]],
+) -> None:
+    """Validate column values against approved reference values."""
+    parquet_path = Path(parquet_path)
+
+    table = pq.read_table(
+        parquet_path,
+        columns=sorted(reference_values),
+    )
+
+    for column_name, allowed_values in reference_values.items():
+        actual_values = {value.as_py() for value in table[column_name] if value.as_py() is not None}
+
+        invalid_values = actual_values - allowed_values
+
+        if invalid_values:
+            invalid = ", ".join(sorted(str(value) for value in invalid_values))
+            raise ValidationError(
+                f"Invalid reference value(s) for column '{column_name}': {invalid}"
+            )

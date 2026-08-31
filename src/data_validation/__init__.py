@@ -7,6 +7,7 @@ from data_validation.validators import (
     validate_composite_uniqueness,
     validate_nulls,
     validate_parquet,
+    validate_reference_values,
     validate_required_columns,
 )
 
@@ -17,5 +18,6 @@ __all__ = [
     "validate_composite_uniqueness",
     "validate_nulls",
     "validate_parquet",
+    "validate_reference_values",
     "validate_required_columns",
 ]

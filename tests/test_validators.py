@@ -11,6 +11,7 @@ from data_validation.validators import (
     validate_composite_uniqueness,
     validate_nulls,
     validate_parquet,
+    validate_reference_values,
 )
 
 
@@ -185,6 +186,8 @@ def test_validate_parquet_runs_all_checks(tmp_path: Path) -> None:
         "nulls",
         "composite_uniqueness",
     )
+    assert result.row_count == 2
+    assert result.execution_time_seconds >= 0
 
 
 def test_validate_parquet_stops_on_validation_error(tmp_path: Path) -> None:
@@ -206,3 +209,67 @@ def test_validate_parquet_stops_on_validation_error(tmp_path: Path) -> None:
         match="Missing required columns: value",
     ):
         validate_parquet(parquet_path)
+
+
+def test_validate_reference_values_passes(tmp_path: Path) -> None:
+    parquet_path = tmp_path / "valid_reference.parquet"
+
+    table = pa.table(
+        {
+            "model_id": ["model-a", "model-b"],
+            "forecast_date": [
+                date(2026, 8, 31),
+                date(2026, 8, 31),
+            ],
+            "location_id": ["01", "02"],
+            "horizon": [1, 1],
+            "value": [10.5, 11.5],
+        }
+    )
+
+    pq.write_table(table, parquet_path)
+
+    reference_values = {
+        "model_id": {"model-a", "model-b"},
+        "location_id": {"01", "02", "03"},
+    }
+
+    validate_reference_values(
+        parquet_path,
+        reference_values,
+    )
+
+
+def test_validate_reference_values_fails_for_unknown_value(
+    tmp_path: Path,
+) -> None:
+    parquet_path = tmp_path / "invalid_reference.parquet"
+
+    table = pa.table(
+        {
+            "model_id": ["model-a", "unknown-model"],
+            "forecast_date": [
+                date(2026, 8, 31),
+                date(2026, 8, 31),
+            ],
+            "location_id": ["01", "99"],
+            "horizon": [1, 1],
+            "value": [10.5, 11.5],
+        }
+    )
+
+    pq.write_table(table, parquet_path)
+
+    reference_values = {
+        "model_id": {"model-a", "model-b"},
+        "location_id": {"01", "02", "03"},
+    }
+
+    with pytest.raises(
+        ValidationError,
+        match="Invalid reference value",
+    ):
+        validate_reference_values(
+            parquet_path,
+            reference_values,
+        )
