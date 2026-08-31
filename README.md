@@ -17,11 +17,15 @@ The validator currently supports:
 - Required-column validation
 - Column data-type validation
 - Null-value validation
-- Composite-key uniqueness validation
-- DuckDB-based Parquet querying
+- Composite-key uniqueness validation using DuckDB
+- Reference / metadata value validation
 - Reusable Python validation API
+- Structured validation results
+- Row-count and execution-time reporting
 - Command-line validation
-- Automated unit tests
+- Text and JSON CLI output
+- Non-zero exit codes for validation failures
+- Automated unit tests with pytest
 - Ruff formatting and linting
 - GitHub Actions CI
 
@@ -158,6 +162,8 @@ Example output:
 
 ```text
 Validation passed: data/sample/forecast.parquet
+Rows validated: 2
+Execution time: 0.021 seconds
 Checks run:
   - required_columns
   - column_types
@@ -165,13 +171,70 @@ Checks run:
   - composite_uniqueness
 ```
 
-A validation failure returns a non-zero exit code, making the CLI suitable for use in CI/CD pipelines.
+````markdown
+### JSON Output
+
+For CI/CD pipelines, automation, and orchestration systems, validation results can also be returned as JSON:
+
+```bash
+validate-data data/sample/forecast.parquet --format json
+```
 
 Example:
-
-```text
-Validation failed: Missing required columns: value
 ```
+{
+  "status": "passed",
+  "parquet_path": "data/sample/forecast.parquet",
+  "row_count": 2,
+  "checks_run": [
+    "required_columns",
+    "column_types",
+    "nulls",
+    "composite_uniqueness"
+  ],
+  "execution_time_seconds": 0.021
+}
+```
+
+Validation failures also support machine-readable JSON:
+```
+{
+  "status": "failed",
+  "parquet_path": "data/sample/invalid.parquet",
+  "error": "Missing required columns: value"
+}
+```
+
+A validation failure returns a non-zero exit code, making the CLI suitable for use in CI/CD pipelines.
+
+Put this after the Python Usage section:
+
+````markdown
+## Reference / Metadata Validation
+
+Datasets can also be checked against approved reference values.
+
+For example:
+
+```python
+from data_validation import validate_reference_values
+
+reference_values = {
+    "model_id": {"model-a", "model-b"},
+    "location_id": {"01", "02", "03"},
+}
+
+validate_reference_values(
+    "data/sample/forecast.parquet",
+    reference_values,
+)
+```
+
+If the dataset contains a value outside the approved reference set, validation fails with a `ValidationError`.
+
+This pattern is useful when analytical datasets depend on controlled metadata such as model identifiers, location codes, categories, or other reference data.
+
+Reference validation is intentionally separate from the default `validate_parquet()` pipeline because it requires an external reference source.
 
 ---
 
@@ -252,8 +315,14 @@ The test suite covers:
 - Null detection
 - Unique composite keys
 - Duplicate composite keys
+- Reference / metadata validation
 - Complete validation orchestration
+- Row-count reporting
+- Execution-time reporting
 - CLI success and failure behavior
+- Text CLI output
+- JSON CLI success output
+- JSON CLI failure output
 
 ---
 
@@ -327,20 +396,22 @@ These boundaries make the validation components easier to test, extend, and reus
 
 Potential future enhancements include:
 
-- Reference / metadata validation
-- Structured validation reports
-- Row-count and file metadata checks
-- Multiple-file validation
-- JSON validation output
-- Performance benchmarking
+- Configuration-driven validation rules
+- Reference data loaded from CSV, databases, or APIs
+- Multiple-file and partitioned-dataset validation
+- Detailed duplicate reporting
+- File-size and Parquet metadata checks
+- Performance benchmarking on larger synthetic datasets
+- Memory-usage reporting
+- Configurable validation severity levels
 - GitHub Actions validation of uploaded datasets
-- Additional DuckDB-based large-file checks
+- Integration examples for workflow orchestrators
 
 ---
 
 ## Technology Stack
 
-**Python | PyArrow | Parquet | DuckDB | pytest | Ruff | GitHub Actions | CI/CD**
+**Python | PyArrow | Parquet | DuckDB | pytest | Ruff | pre-commit | GitHub Actions | CI/CD | Data Validation | DataOps**
 
 ---
 
