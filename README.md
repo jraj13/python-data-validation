@@ -204,7 +204,7 @@ Validation failures also support machine-readable JSON:
   "error": "Missing required columns: value"
 }
 ```
-
+````
 A validation failure returns a non-zero exit code, making the CLI suitable for use in CI/CD pipelines.
 
 Put this after the Python Usage section:
@@ -229,7 +229,7 @@ validate_reference_values(
     reference_values,
 )
 ```
-
+````
 If the dataset contains a value outside the approved reference set, validation fails with a `ValidationError`.
 
 This pattern is useful when analytical datasets depend on controlled metadata such as model identifiers, location codes, categories, or other reference data.
