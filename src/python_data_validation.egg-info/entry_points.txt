@@ -1,0 +1,2 @@
+[console_scripts]
+validate-data = data_validation.cli:main

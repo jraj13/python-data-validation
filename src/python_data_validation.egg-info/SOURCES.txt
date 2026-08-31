@@ -1,0 +1,8 @@
+README.md
+pyproject.toml
+src/python_data_validation.egg-info/PKG-INFO
+src/python_data_validation.egg-info/SOURCES.txt
+src/python_data_validation.egg-info/dependency_links.txt
+src/python_data_validation.egg-info/entry_points.txt
+src/python_data_validation.egg-info/requires.txt
+src/python_data_validation.egg-info/top_level.txt
