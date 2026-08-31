@@ -175,7 +175,7 @@ Checks run:
 ### JSON Output
 
 For CI/CD pipelines, automation, and orchestration systems, validation results can also be returned as JSON:
-
+````
 ```bash
 validate-data data/sample/forecast.parquet --format json
 ```
@@ -204,7 +204,7 @@ Validation failures also support machine-readable JSON:
   "error": "Missing required columns: value"
 }
 ```
-````
+
 A validation failure returns a non-zero exit code, making the CLI suitable for use in CI/CD pipelines.
 
 Put this after the Python Usage section:
@@ -213,7 +213,7 @@ Put this after the Python Usage section:
 ## Reference / Metadata Validation
 
 Datasets can also be checked against approved reference values.
-
+````
 For example:
 
 ```python
@@ -229,7 +229,7 @@ validate_reference_values(
     reference_values,
 )
 ```
-````
+
 If the dataset contains a value outside the approved reference set, validation fails with a `ValidationError`.
 
 This pattern is useful when analytical datasets depend on controlled metadata such as model identifiers, location codes, categories, or other reference data.
