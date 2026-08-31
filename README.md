@@ -1,5 +1,7 @@
 # Python Data Validation
 
+[![CI](https://github.com/jraj13/python-data-validation/actions/workflows/ci.yml/badge.svg)](https://github.com/jraj13/python-data-validation/actions/workflows/ci.yml)
+
 A reusable Python validation library for Parquet-based analytical datasets.
 
 The project demonstrates production-style validation patterns using **Python, PyArrow, DuckDB, pytest, Ruff, pre-commit, and GitHub Actions**.
